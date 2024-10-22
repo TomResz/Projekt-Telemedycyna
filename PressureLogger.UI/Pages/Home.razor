@@ -1,0 +1,58 @@
+﻿@layout ContentLayout
+@implements IAsyncDisposable
+@inject IOptions<ApiOptions> Options
+@page "/"
+
+
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.Extensions.Options
+@using PressureLogger.UI.Options
+<PageTitle>Aktualny Pomiar</PageTitle>
+
+
+<div class="d-flex justify-content-center align-items-center flex-column" style="height: calc(100vh - 96px);">
+	<MudPaper Class="p-4" Elevation="4" Style="max-width: 950px; width: 100%;">
+		<div class="d-flex justify-content-center align-items-center flex-column">
+			<img src="/weight-gain-icon.svg" class="ma-4" style="max-width: 250px; max-height: 250px;"/>
+
+			<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">
+				Aktualny pomiar: <b>@_currentWeight kg</b>
+			</MudText>
+
+			<MudText Typo="Typo.h6" Align="Align.Center">
+				Data wykonania pomiaru: <b>@_date.ToString("HH:mm:ss   dd.MM.yyyy")</b>
+			</MudText>
+		</div>
+	</MudPaper>
+</div>
+
+@code {
+	private double _currentWeight = 0.0;
+	private DateTime _date = DateTime.Now;
+	private HubConnection? hubConnection;
+
+	protected override async Task OnInitializedAsync()
+	{
+		hubConnection = new HubConnectionBuilder()
+			.WithUrl(Options.Value.WeigthHub)
+			.WithAutomaticReconnect()
+			.Build();
+
+		hubConnection.On<double,DateTime>("SendWeight",async (receivedWeight,_receivedDate) =>
+		{
+			_currentWeight = receivedWeight;
+			_date = _receivedDate;
+			await InvokeAsync(StateHasChanged);
+		});
+
+		await hubConnection.StartAsync();
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (hubConnection is not null)
+		{
+			await hubConnection.DisposeAsync();
+		}
+	}
+}

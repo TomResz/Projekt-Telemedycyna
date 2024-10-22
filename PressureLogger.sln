@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{AB86E62C-5E65-4389-828C-4FBDE0CB84AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{9757A55C-109A-46BA-A641-9D63D496B719}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.UI", "PressureLogger.UI\PressureLogger.UI.csproj", "{853A995D-2D3A-46C6-95AB-34F65B95BC42}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{85044595-9D4B-4613-9947-B4BD3F7EFA21}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.API", "PressureLogger.API\PressureLogger.API.csproj", "{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.Infrastructure", "PressureLogger.Infrastructure\PressureLogger.Infrastructure.csproj", "{4395DBE2-725D-41C8-8867-EEBDA2CB1D98}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DummySender", "DummySender", "{9E2129BD-D095-433B-B0BD-1A1E57C8C5D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.DummyHttpSender", "PressureLogger.DummyHttpSender\PressureLogger.DummyHttpSender.csproj", "{41580694-1210-4A0E-818C-324EF5BF7573}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{853A995D-2D3A-46C6-95AB-34F65B95BC42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{853A995D-2D3A-46C6-95AB-34F65B95BC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{853A995D-2D3A-46C6-95AB-34F65B95BC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{853A995D-2D3A-46C6-95AB-34F65B95BC42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4395DBE2-725D-41C8-8867-EEBDA2CB1D98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4395DBE2-725D-41C8-8867-EEBDA2CB1D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4395DBE2-725D-41C8-8867-EEBDA2CB1D98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4395DBE2-725D-41C8-8867-EEBDA2CB1D98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41580694-1210-4A0E-818C-324EF5BF7573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41580694-1210-4A0E-818C-324EF5BF7573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41580694-1210-4A0E-818C-324EF5BF7573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41580694-1210-4A0E-818C-324EF5BF7573}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{853A995D-2D3A-46C6-95AB-34F65B95BC42} = {AB86E62C-5E65-4389-828C-4FBDE0CB84AC}
+		{3682EDE1-D754-49BF-8032-93A3EBFE2F3D} = {9757A55C-109A-46BA-A641-9D63D496B719}
+		{4395DBE2-725D-41C8-8867-EEBDA2CB1D98} = {9757A55C-109A-46BA-A641-9D63D496B719}
+		{41580694-1210-4A0E-818C-324EF5BF7573} = {9E2129BD-D095-433B-B0BD-1A1E57C8C5D6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C183702B-BD9C-4D49-94F8-502225594DB4}
+	EndGlobalSection
+EndGlobal

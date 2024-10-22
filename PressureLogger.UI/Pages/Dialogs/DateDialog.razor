@@ -1,0 +1,34 @@
+﻿@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudDatePicker @bind-Date="_selectedDate" Label="Wybierz datę" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Confirm" Color="Color.Primary">Zatwierdź</MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Anuluj</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private DateTime? _selectedDate = DateTime.Now.Date;
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public DateTime CheckedDate { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _selectedDate = CheckedDate;
+    }
+
+    private void Confirm()
+    {
+        MudDialog.Close(DialogResult.Ok(_selectedDate!));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

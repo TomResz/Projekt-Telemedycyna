@@ -1,0 +1,12 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="_currentTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<PageTitle>Pomiar Nacisku</PageTitle>
+
+<CascadingValue Value="this">
+	@Body
+</CascadingValue>
