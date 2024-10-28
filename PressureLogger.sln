@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{AB86E62C-5E65-4389-828C-4FBDE0CB84AC}"
+	ProjectSection(SolutionItems) = preProject
+		PressureLogger.UI\nginx.conf = PressureLogger.UI\nginx.conf
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{9757A55C-109A-46BA-A641-9D63D496B719}"
 EndProject
@@ -12,6 +15,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{85044595-9D4B-4613-9947-B4BD3F7EFA21}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Scripts\rebuildAPI.bat = Scripts\rebuildAPI.bat
+		Scripts\rebuildContainers.bat = Scripts\rebuildContainers.bat
+		Scripts\rebuildUI.bat = Scripts\rebuildUI.bat
+		Scripts\runDockerContainers.bat = Scripts\runDockerContainers.bat
+		Scripts\stopContainers.bat = Scripts\stopContainers.bat
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.API", "PressureLogger.API\PressureLogger.API.csproj", "{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}"
@@ -21,6 +29,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DummySender", "DummySender", "{9E2129BD-D095-433B-B0BD-1A1E57C8C5D6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.DummyHttpSender", "PressureLogger.DummyHttpSender\PressureLogger.DummyHttpSender.csproj", "{41580694-1210-4A0E-818C-324EF5BF7573}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{5FBA9C4A-5512-4507-BBD2-7EEF96A5482E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +54,10 @@ Global
 		{41580694-1210-4A0E-818C-324EF5BF7573}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41580694-1210-4A0E-818C-324EF5BF7573}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41580694-1210-4A0E-818C-324EF5BF7573}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FBA9C4A-5512-4507-BBD2-7EEF96A5482E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FBA9C4A-5512-4507-BBD2-7EEF96A5482E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FBA9C4A-5512-4507-BBD2-7EEF96A5482E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FBA9C4A-5512-4507-BBD2-7EEF96A5482E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

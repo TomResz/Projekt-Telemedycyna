@@ -1,0 +1,25 @@
+name: pressurelogger
+services:
+  pressurelogger.api:
+    container_name: pressurelogger.api
+    image: ${DOCKER_REGISTRY-}pressureloggerapi
+    build:
+      context: .
+      dockerfile: PressureLogger.API/Dockerfile
+    volumes:
+       - ./.containers/database:/app/database
+    ports:
+     - "6001:6001"
+     - "6000:6000"
+  pressurelogger.ui:
+    container_name: pressurelogger.ui 
+    build:
+      context: ./PressureLogger.UI
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+      - "8081:443"
+    volumes:
+      - ./PressureLogger.UI/nginx.conf:/etc/nginx/nginx.conf
+      - ./Certificates:/etc/ssl/certs
+      - ./Certificates:/etc/ssl/private

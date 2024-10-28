@@ -3,6 +3,9 @@
 window.drawWeightChart = function (labels, data, chartTitle) {
     var ctx = document.getElementById('weightChart').getContext('2d');
 
+    ctx.canvas.width = ctx.canvas.offsetWidth;
+    ctx.canvas.height = 200;
+
     if (myChart) {
         myChart.destroy();
     }

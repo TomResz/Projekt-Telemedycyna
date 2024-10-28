@@ -1,0 +1,84 @@
+﻿@page "/stoper"
+@using System.Text.Json
+@using PressureLogger.UI.Models
+
+<MudCard>
+	<MudCardContent>
+		<MudText Typo="Typo.h5" Class="mb-2">Stoper z wykresem</MudText>
+
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartTimer" Disabled="@isRunning">
+			Start
+		</MudButton>
+
+		<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="StopTimer" Disabled="@(!isRunning)">
+			Stop
+		</MudButton>
+
+		<MudText Typo="Typo.h6" Class="mt-3">
+			Czas: @elapsedTime sekundy
+		</MudText>
+
+		<canvas id="weightChart" width="400" height="200"></canvas>
+	</MudCardContent>
+</MudCard>
+
+
+@code {
+	[Inject] public HttpClient Http { get; set; }
+	[Inject] public IJSRuntime JSRuntime { get; set; }
+
+	private Timer timer;
+	private bool isRunning = false;
+	private decimal elapsedTime = 0.0m;
+
+	private bool ShowChart = false;
+
+	private DateTime? BeginDate = null;
+	private DateTime? EndDate = null;
+
+
+	private async Task StartTimer()
+	{
+		if (elapsedTime > 0.0m)
+		{
+			elapsedTime = 0.0m;
+		}
+
+		isRunning = true;
+		elapsedTime = 0;
+		BeginDate = DateTime.Now;
+
+		while (isRunning)
+		{
+			await Task.Delay(100);
+			elapsedTime += 0.1m;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task StopTimer()
+	{
+		isRunning = false;
+		EndDate = DateTime.Now;
+
+		var beginDateStr = BeginDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+		var endDateStr = EndDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+
+		var response = await Http.GetAsync($"pressure?begin={beginDateStr}&end={endDateStr}");
+
+		if (response.IsSuccessStatusCode)
+		{
+			var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+			var bodyResponse = await response.Content.ReadAsStringAsync();
+			var models = JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
+
+			var chartData = models!.Select(w => w.ValueInKilograms).ToArray();
+			var chartLabels = models!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
+
+			await JSRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, string.Empty);
+			await InvokeAsync(StateHasChanged);
+		}
+		BeginDate = null;
+		EndDate = null;
+	}
+}

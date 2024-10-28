@@ -1,12 +1,15 @@
 ﻿@layout ContentLayout
 @implements IAsyncDisposable
 @inject IOptions<ApiOptions> Options
+@inject HttpClient Http
 @page "/"
 
 
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.Extensions.Options
+@using PressureLogger.UI.Models
 @using PressureLogger.UI.Options
+@using System.Text.Json
 <PageTitle>Aktualny Pomiar</PageTitle>
 
 
@@ -46,6 +49,19 @@
 		});
 
 		await hubConnection.StartAsync();
+
+		var response = await Http.GetAsync("pressure/last");
+
+		if (response.IsSuccessStatusCode)
+		{
+			var jsonResponse = await response.Content.ReadAsStringAsync();
+			var obj = JsonSerializer.Deserialize<WeightModel>(jsonResponse, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			});
+			_currentWeight = obj?.ValueInKilograms ?? 0.0;
+			_date = obj?.CreatedAt ?? DateTime.Now;
+		}
 	}
 
 	public async ValueTask DisposeAsync()
