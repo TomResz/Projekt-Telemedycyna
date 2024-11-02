@@ -2,7 +2,7 @@
 using System.Text;
 
 HttpClient client = new HttpClient();
-Console.WriteLine("Za kilka sekund zaczynam wysałać wiadomośći ...");
+Console.WriteLine("Za kilka sekund zaczynam wysyłać wiadomosći ...");
 await Task.Delay(5000);
 
 Console.WriteLine("Zaczynamy!");
@@ -10,7 +10,7 @@ Console.WriteLine("Zaczynamy!");
 while (true)
 {
 	await SendPressureData();
-	await Task.Delay(5000);
+	await Task.Delay(2_000);
 }
 
 async Task SendPressureData()
