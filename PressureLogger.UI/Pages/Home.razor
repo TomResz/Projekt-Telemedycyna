@@ -19,7 +19,7 @@
 			<img src="/weight-gain-icon.svg" class="ma-4" style="max-width: 250px; max-height: 250px;"/>
 
 			<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">
-				Aktualny pomiar: <b>@_currentWeight kg</b>
+				Aktualny pomiar: <b>@(_currentWeight < 1.0 ? $"{_currentWeight * 1000.0} g" : $"{_currentWeight} kg")</b>
 			</MudText>
 
 			<MudText Typo="Typo.h6" Align="Align.Center">

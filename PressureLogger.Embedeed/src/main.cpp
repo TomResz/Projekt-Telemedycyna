@@ -16,10 +16,15 @@ float weight = 0.0f;
 
 void sendPOSTRequest(float weight)
 {
+
   if (WiFi.status() == WL_CONNECTED)
   {
-    float valueInKilograms = weight / 1000.0f;
     HTTPClient http;
+
+    if(weight < 0.5f)
+      weight = 0.0f;
+   
+    float valueInKilograms = weight / 1000.0f;
 
     http.begin(serverName.c_str());
     http.addHeader("Content-Type", "application/json");
@@ -32,14 +37,14 @@ void sendPOSTRequest(float weight)
 
     if (httpResponseCode != 201)
     {
-      Serial.println("Błąd podczas wysyłania POST: " + String(httpResponseCode));
+      Serial.println("API error: " + String(httpResponseCode));
     }
-
+    
     http.end();
   }
   else
   {
-    Serial.println("Brak połączenia z WiFi");
+    Serial.println("Cannot connected to WLAN.");
   }
 }
 
@@ -51,25 +56,22 @@ void setupHx711()
 
   while (!scale.is_ready())
   {
-    Serial.println("HX711 nie jest gotowy, sprawdź połączenia.");
+    Serial.println("HX711 is not ready.");
     delay(1000);
   }
-  Serial.println("HX711 gotowy.");
+  Serial.println("HX711 is ready");
 
   // Tutaj wspolczynnik kalibracji trza wpisać
   // krucafiks
-  scale.set_scale();
-
+  scale.set_scale(645.59f);
 
   scale.tare();
-
-  Serial.println("Czujnik skalibrowany.");
 }
 
 void setupWifi()
 {
   WiFiManagerParameter custom_server("server", "Wprowadź URL serwera", "https://192.168.0.89:6001/api/pressure", 64);
-  WiFiManagerParameter custom_apiKey("api-key", "Wprowadź klucz APi", "example-api-key", 32);
+  WiFiManagerParameter custom_apiKey("api", "Wprowadź klucz APi", "qwerty", 64);
 
   wm.addParameter(&custom_server);
   wm.addParameter(&custom_apiKey);
@@ -79,7 +81,7 @@ void setupWifi()
   serverName = custom_server.getValue();
   apiKey = custom_apiKey.getValue();
 
-  Serial.println("Polaczono z wifi");
+  Serial.println("Wifi connected.");
 }
 
 void setup()
@@ -93,9 +95,11 @@ void loop()
 {
   weight = 0.0f;
   weight = scale.get_units(10);
+
   Serial.print("Weight: ");
   Serial.print(weight, 2);
   Serial.println(" g");
   sendPOSTRequest(weight);
+
   delay(1000);
 }

@@ -1,6 +1,7 @@
 ﻿@page "/stopwatch"
 @using System.Text.Json
 @using PressureLogger.UI.Models
+@using System.Timers
 
 <PageTitle>Stoper</PageTitle>
 
@@ -17,49 +18,46 @@
 		</MudButton>
 
 		<MudText Typo="Typo.h6" Class="mt-3">
-			Czas: @elapsedTime sekundy
+			Czas: @elapsedTime
 		</MudText>
-
 		<canvas id="weightChart" width="400" height="200"></canvas>
 	</MudCardContent>
 </MudCard>
-
 
 @code {
 	[Inject] public HttpClient Http { get; set; }
 	[Inject] public IJSRuntime JSRuntime { get; set; }
 
-	private Timer timer;
-	private bool isRunning = false;
-	private decimal elapsedTime = 0.0m;
+	private System.Timers.Timer timer = new System.Timers.Timer(1);
 
-	private bool ShowChart = false;
+	private bool isRunning = false;
 
 	private DateTime? BeginDate = null;
 	private DateTime? EndDate = null;
 
+	private string elapsedTime = "00:00:000";
 
-	private async Task StartTimer()
+	private void StartTimer()
 	{
-		if (elapsedTime > 0.0m)
-		{
-			elapsedTime = 0.0m;
-		}
-
 		isRunning = true;
-		elapsedTime = 0;
 		BeginDate = DateTime.Now;
 
-		while (isRunning)
-		{
-			await Task.Delay(100);
-			elapsedTime += 0.1m;
-			await InvokeAsync(StateHasChanged);
-		}
+		timer = new System.Timers.Timer(100);
+		timer.Start();
+		timer.Elapsed += OnTimedEvent;
+	}
+
+	public void OnTimedEvent(object? sender, ElapsedEventArgs e)
+	{
+		var currentTime = e.SignalTime;
+		elapsedTime = $"{currentTime.Subtract(BeginDate!.Value).ToString(@"mm\:ss\.fff")}";
+		InvokeAsync(StateHasChanged);
 	}
 
 	private async Task StopTimer()
 	{
+		timer.Stop();
+
 		isRunning = false;
 		EndDate = DateTime.Now;
 

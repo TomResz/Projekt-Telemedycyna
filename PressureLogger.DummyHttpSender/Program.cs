@@ -2,6 +2,7 @@
 using System.Text;
 
 HttpClient client = new HttpClient();
+client.DefaultRequestHeaders.Add("X-Api-Key", "qwerty");
 Console.WriteLine("Za kilka sekund zaczynam wysyłać wiadomosći ...");
 await Task.Delay(5000);
 
@@ -16,7 +17,7 @@ while (true)
 async Task SendPressureData()
 {
 	var random = new Random();
-	double weight = random.NextDouble() * 9 + 1; 
+	double weight = random.NextDouble(); 
 
 	var data = new { Weight = weight };
 	var json = JsonConvert.SerializeObject(data);

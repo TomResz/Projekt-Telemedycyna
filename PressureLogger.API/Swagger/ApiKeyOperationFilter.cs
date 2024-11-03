@@ -17,10 +17,7 @@ public class ApiKeyOperationFilter : IOperationFilter
 	{
 		var apiKeys = _configuration.GetSection("ApiKey:Keys").Get<List<string>>() ?? [];
 
-		if (operation.Parameters is null)
-		{
-			operation.Parameters = [];
-		}
+		operation.Parameters ??= [];
 
 		operation.Parameters.Add(new OpenApiParameter
 		{
