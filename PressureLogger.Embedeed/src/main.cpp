@@ -3,6 +3,9 @@
 #include <WiFiManager.h>
 #include <HTTPClient.h>
 #include <DNSServer.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
+
 #define DOUT_PIN 4
 #define SCK_PIN 5
 
@@ -12,26 +15,42 @@ WiFiManager wm;
 String serverName;
 String apiKey;
 
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 3600);
+
 float weight = 0.0f;
 
-void sendPOSTRequest(float weight)
+float weights[20];
+String timestamps[20];
+int measurementCount = 0;
+
+void sendPOSTRequest(float weights[], String timestamps[], int count)
 {
 
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient http;
 
-    if(weight < 0.5f)
-      weight = 0.0f;
-   
-    float valueInKilograms = weight / 1000.0f;
+
+    String requestBody = "[";
+    for (int i = 0; i < count; i++)
+    {
+      if(weights[i] < 0.8f){
+        weights[i] = 0.0f;
+      }
+
+      float valueInKilograms = weights[i] / 1000.0f;
+      if (i > 0) 
+      {
+        requestBody += ","; 
+      }
+      requestBody += "{\"weight\": " + String(valueInKilograms, 6) + ", \"createdAt\": \"" + timestamps[i] + "\"}";
+    }
+    requestBody += "]";
 
     http.begin(serverName.c_str());
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Api-Key", apiKey);
-
-    String requestBody = "{\"weight\": " + String(valueInKilograms, 6) + "}";
-    Serial.println(requestBody);
 
     int httpResponseCode = http.POST(requestBody);
 
@@ -39,13 +58,33 @@ void sendPOSTRequest(float weight)
     {
       Serial.println("API error: " + String(httpResponseCode));
     }
-    
+
     http.end();
   }
   else
   {
     Serial.println("Cannot connected to WLAN.");
   }
+}
+
+String getFormattedTime()
+{
+  unsigned long now = timeClient.getEpochTime();
+  int millisPart = millis() % 1000;
+
+  int year = 1970 + (now / 31556926);       
+  int month = (now / 2629743) % 12 + 1;     
+  int day = ((now / 86400L) % 30 + 1) - 18;
+
+  int hour = (now % 86400L) / 3600;
+  int minute = (now % 3600) / 60;
+  int second = now % 60;
+
+  char timeBuffer[30];
+  snprintf(timeBuffer, sizeof(timeBuffer), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+           year, month, day, hour, minute, second, millisPart);
+
+  return String(timeBuffer);
 }
 
 void setupHx711()
@@ -70,7 +109,7 @@ void setupHx711()
 
 void setupWifi()
 {
-  WiFiManagerParameter custom_server("server", "Wprowadź URL serwera", "https://192.168.0.89:6001/api/pressure", 64);
+  WiFiManagerParameter custom_server("server", "Wprowadź URL serwera", "https://192.168.0.89:6001/api/pressure/range", 64);
   WiFiManagerParameter custom_apiKey("api", "Wprowadź klucz APi", "qwerty", 64);
 
   wm.addParameter(&custom_server);
@@ -82,6 +121,9 @@ void setupWifi()
   apiKey = custom_apiKey.getValue();
 
   Serial.println("Wifi connected.");
+
+  timeClient.begin();
+  timeClient.update();
 }
 
 void setup()
@@ -89,17 +131,21 @@ void setup()
   Serial.begin(115200);
   setupWifi();
   setupHx711();
+  timeClient.begin();
+  timeClient.update();
 }
 
 void loop()
 {
-  weight = 0.0f;
-  weight = scale.get_units(10);
+  if (measurementCount < 20) {
+    delay(1);
+    weights[measurementCount] = scale.get_units(5);
+    timestamps[measurementCount] = getFormattedTime();
+    measurementCount++; 
+  }
+  else{
+    sendPOSTRequest(weights, timestamps, measurementCount); 
 
-  Serial.print("Weight: ");
-  Serial.print(weight, 2);
-  Serial.println(" g");
-  sendPOSTRequest(weight);
-
-  delay(1000);
+    measurementCount = 0; 
+  }
 }

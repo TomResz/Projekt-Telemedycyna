@@ -33,6 +33,28 @@ public static class PressureEndpoints
 			return Results.Created($"api/pressure/{log.Id}", log);
 		}).AddEndpointFilter<ApiKeyAuthenticationFilter>();
 
+
+		group.MapPost("/range", async (
+			PressureLoggerContext context,
+			[FromBody]IEnumerable<SendPressureLogRequestRange> request,
+			CancellationToken ct) =>
+		{
+			List<PressureHistory> logs = new(capacity: request.Count());
+
+			foreach(var log in request)
+			{
+				logs.Add(PressureHistory.Create(log.Weight, log.CreatedAt));
+			}
+
+			await context.AddRangeAsync(logs,ct);
+
+			await context.SaveChangesAsync(ct);
+
+			return Results.Created();
+		}).AddEndpointFilter<ApiKeyAuthenticationFilter>();
+
+
+
 		group.MapGet("{id:guid}", async (PressureLoggerContext context, Guid id, CancellationToken ct) =>
 		{
 			var log = await context

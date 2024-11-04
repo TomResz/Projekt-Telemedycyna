@@ -1,9 +1,10 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+ENV TZ=Europe/Warsaw
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 USER app
 WORKDIR /app
 EXPOSE 6000
 EXPOSE 6001
-
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
