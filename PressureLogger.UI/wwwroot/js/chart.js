@@ -15,7 +15,7 @@ window.drawWeightChart = function (labels, data, chartTitle) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Waga (kg)',
+                label: 'Waga (g)',
                 data: data,
                 borderColor: 'rgba(75, 192, 192, 1)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -47,7 +47,7 @@ window.drawWeightChart = function (labels, data, chartTitle) {
                 y: {
                     title: {
                         display: true,
-                        text: 'Waga (kg)'
+                        text: 'Waga (g)'
                     }
                 }
             }

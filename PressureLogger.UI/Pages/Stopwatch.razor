@@ -9,16 +9,16 @@
 	<MudCardContent>
 		<MudText Typo="Typo.h5" Class="mb-2">Stoper z wykresem</MudText>
 
-		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartTimer" Disabled="@isRunning">
+		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartTimer" Disabled="@_isRunning">
 			Start
 		</MudButton>
 
-		<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="StopTimer" Disabled="@(!isRunning)">
+		<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="StopTimer" Disabled="@(!_isRunning)">
 			Stop
 		</MudButton>
 
 		<MudText Typo="Typo.h6" Class="mt-3">
-			Czas: @elapsedTime
+			Czas: @_elapsedTime
 		</MudText>
 		<canvas id="weightChart" width="400" height="200"></canvas>
 	</MudCardContent>
@@ -26,45 +26,45 @@
 
 @code {
 	[Inject] public HttpClient Http { get; set; }
-	[Inject] public IJSRuntime JSRuntime { get; set; }
+	[Inject] public IJSRuntime JsRuntime { get; set; }
 
-	private System.Timers.Timer timer = new System.Timers.Timer(1);
+	private System.Timers.Timer _timer = new System.Timers.Timer(1);
 
-	private bool isRunning = false;
+	private bool _isRunning = false;
 
-	private DateTime? BeginDate = null;
-	private DateTime? EndDate = null;
+	private DateTime? _beginDate = null;
+	private DateTime? _endDate = null;
 
-	private string elapsedTime = "00:00:000";
+	private string _elapsedTime = "00:00:000";
 
 	private void StartTimer()
 	{
-		isRunning = true;
-		BeginDate = DateTime.Now;
+		_isRunning = true;
+		_beginDate = DateTime.Now;
 
-		timer = new System.Timers.Timer(100);
-		timer.Start();
-		timer.Elapsed += OnTimedEvent;
+		_timer = new System.Timers.Timer(100);
+		_timer.Start();
+		_timer.Elapsed += OnTimedEvent;
 	}
 
-	public void OnTimedEvent(object? sender, ElapsedEventArgs e)
+	private void OnTimedEvent(object? sender, ElapsedEventArgs e)
 	{
 		var currentTime = e.SignalTime;
-		elapsedTime = $"{currentTime.Subtract(BeginDate!.Value).ToString(@"mm\:ss\.fff")}";
+		_elapsedTime = $"{currentTime.Subtract(_beginDate!.Value).ToString(@"mm\:ss\.fff")}";
 		InvokeAsync(StateHasChanged);
 	}
 
 	private async Task StopTimer()
 	{
-		timer.Stop();
+		_timer.Stop();
 
-		isRunning = false;
-		EndDate = DateTime.Now;
+		_isRunning = false;
+		_endDate = DateTime.Now;
 
-		var beginDateStr = BeginDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
-		var endDateStr = EndDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+		var beginDateStr = _beginDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+		var endDateStr = _endDate!.Value.ToString("yyyy-MM-ddTHH:mm:ss");
 
-		var response = await Http.GetAsync($"pressure?begin={beginDateStr}&end={endDateStr}");
+		var response = await Http.GetAsync($"pressure/avg-sec?begin={beginDateStr}&end={endDateStr}");
 
 		if (response.IsSuccessStatusCode)
 		{
@@ -72,13 +72,13 @@
 			var bodyResponse = await response.Content.ReadAsStringAsync();
 			var models = JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
 
-			var chartData = models!.Select(w => w.ValueInKilograms).ToArray();
+			var chartData = models!.Select(w => w.ValueInKilograms * 1000.0 ).ToArray();
 			var chartLabels = models!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
 
-			await JSRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, string.Empty);
+			await JsRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, string.Empty);
 			await InvokeAsync(StateHasChanged);
 		}
-		BeginDate = null;
-		EndDate = null;
+		_beginDate = null;
+		_endDate = null;
 	}
 }

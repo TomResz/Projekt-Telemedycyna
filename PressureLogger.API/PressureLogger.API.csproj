@@ -12,11 +12,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="MQTTnet" Version="5.0.0.1214-RC" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PressureLogger.Infrastructure\PressureLogger.Infrastructure.csproj" />
+    <ProjectReference Include="..\PressureLogger.Shared\PressureLogger.Shared.csproj" />
   </ItemGroup>
 
 </Project>

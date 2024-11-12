@@ -2,6 +2,7 @@
 @implements IAsyncDisposable
 @inject IOptions<ApiOptions> Options
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 @page "/"
 
 
@@ -16,7 +17,9 @@
 <div class="d-flex justify-content-center align-items-center flex-column" style="height: calc(100vh - 96px);">
 	<MudPaper Class="p-4" Elevation="4" Style="max-width: 950px; width: 100%;">
 		<div class="d-flex justify-content-center align-items-center flex-column">
-			<img src="/weight-gain-icon.svg" class="ma-4" style="max-width: 250px; max-height: 250px;"/>
+
+            <canvas id="gaugeCanvas" width="400" height="200"></canvas>
+
 
 			<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">
 				Aktualny pomiar: <b>@(_currentWeight < 1.0 ? $"{_currentWeight * 1000.0} g" : $"{_currentWeight} kg")</b>
@@ -30,45 +33,56 @@
 </div>
 
 @code {
-	private double _currentWeight = 0.0;
-	private DateTime _date = DateTime.Now;
-	private HubConnection? hubConnection;
+    private double _currentWeight = 0.0;
+    private DateTime _date = DateTime.Now;
+    private HubConnection? hubConnection;
+    private bool _canvasInitialized = false;
 
-	protected override async Task OnInitializedAsync()
-	{
-		hubConnection = new HubConnectionBuilder()
-			.WithUrl(Options.Value.WeigthHub)
-			.WithAutomaticReconnect()
-			.Build();
 
-		hubConnection.On<double,DateTime>("SendWeight",async (receivedWeight,_receivedDate) =>
-		{
-			_currentWeight = receivedWeight;
-			_date = _receivedDate;
-			await InvokeAsync(StateHasChanged);
-		});
+    protected async override Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Options.Value.WeigthHub)
+            .WithAutomaticReconnect()
+            .Build();
 
-		await hubConnection.StartAsync();
+        hubConnection.On<double, DateTime>("SendWeight", async (receivedWeight, _receivedDate) =>
+        {
+            _currentWeight = receivedWeight;
+            _date = _receivedDate;
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(100);
+            await SetWeightCanvas();
+        });
 
-		var response = await Http.GetAsync("pressure/last");
+        await hubConnection.StartAsync();
 
-		if (response.IsSuccessStatusCode)
-		{
-			var jsonResponse = await response.Content.ReadAsStringAsync();
-			var obj = JsonSerializer.Deserialize<WeightModel>(jsonResponse, new JsonSerializerOptions
-			{
-				PropertyNameCaseInsensitive = true
-			});
-			_currentWeight = obj?.ValueInKilograms ?? 0.0;
-			_date = obj?.CreatedAt ?? DateTime.Now;
-		}
-	}
+        var response = await Http.GetAsync("pressure/last");
 
-	public async ValueTask DisposeAsync()
-	{
-		if (hubConnection is not null)
-		{
-			await hubConnection.DisposeAsync();
-		}
-	}
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var obj = JsonSerializer.Deserialize<WeightModel>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            _currentWeight = obj?.ValueInKilograms ?? 0.0;
+            _date = obj?.CreatedAt ?? DateTime.Now;
+
+            await Task.Delay(100);
+
+            await SetWeightCanvas();
+        }
+    }
+
+    private async Task SetWeightCanvas() => await JSRuntime.InvokeVoidAsync("setWeight", _currentWeight * 1000.0);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
 }

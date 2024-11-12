@@ -1,5 +1,16 @@
 name: pressurelogger
 services:
+  pressurelogger.mqtt:
+    container_name: pressurelogger.mqtt
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./.containers/mqtt:/mosquitto
+      - ./.containers/mqtt/data:/mosquitto/data
+      - ./.containers/mqtt/log:/mosquitto/log
   pressurelogger.api:
     container_name: pressurelogger.api
     image: ${DOCKER_REGISTRY-}pressureloggerapi
@@ -11,6 +22,9 @@ services:
     ports:
      - "6001:6001"
      - "6000:6000"
+    depends_on:
+      - pressurelogger.mqtt
+
   pressurelogger.ui:
     container_name: pressurelogger.ui 
     build:
@@ -23,3 +37,11 @@ services:
       - ./PressureLogger.UI/nginx.conf:/etc/nginx/nginx.conf
       - ./Certificates:/etc/ssl/certs
       - ./Certificates:/etc/ssl/private
+
+# Only for tests (without external MQTT message sender)
+#  pressurelogger.dummymqttpublisher:
+#    container_name: pressurelogger.dummymqttpublisher
+#    image: pressurelogger.dummymqttpublisher
+#    build:
+#      context: .
+#      dockerfile: PressureLogger.DummyMqttPublisher/Dockerfile

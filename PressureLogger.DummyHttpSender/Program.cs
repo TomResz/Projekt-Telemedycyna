@@ -10,30 +10,47 @@ Console.WriteLine("Zaczynamy!");
 
 while (true)
 {
-	await SendPressureData();
-	await Task.Delay(2_000);
+    await SendPressureData();
+    await Task.Delay(6_000);
 }
 
 async Task SendPressureData()
 {
-	var random = new Random();
-	double weight = random.NextDouble(); 
+    var random = new Random();
+    double weight = random.NextDouble();
 
-	var data = new { Weight = weight };
-	var json = JsonConvert.SerializeObject(data);
+    var models = new List<Request>(capacity: 20);
+    
+    for (int i = 0; i < 20; i++)
+    {
+        var request = new Request()
+        {
+            Weight = random.NextDouble(),
+            CreatedAt = DateTime.Now,
+        };
+        models.Add(request);
+    }
+    
+    var json = JsonConvert.SerializeObject(models);
 
-	var content = new StringContent(json, Encoding.UTF8, "application/json");
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-	try
-	{
-		var response = await client.PostAsync("https://localhost:6001/api/pressure", content);
-		response.EnsureSuccessStatusCode();
+    try
+    {
+        var response = await client.PostAsync("https://localhost:6001/api/pressure/range", content);
+        response.EnsureSuccessStatusCode();
 
-		string responseBody = await response.Content.ReadAsStringAsync();
-		Console.WriteLine($"Wysłano dane: Weight = {weight}. Odpowiedź: {responseBody}");
-	}
-	catch (HttpRequestException e)
-	{
-		Console.WriteLine($"Błąd podczas wysyłania zapytania: {e.Message}");
-	}
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"Wysłano dane: Weight = {weight}. Odpowiedź: {responseBody}");
+    }
+    catch (HttpRequestException e)
+    {
+        Console.WriteLine($"Błąd podczas wysyłania zapytania: {e.Message}");
+    }
+}
+
+class Request
+{
+    public double Weight { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

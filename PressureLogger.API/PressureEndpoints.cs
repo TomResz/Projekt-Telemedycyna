@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using PressureLogger.API.Authentication;
-using PressureLogger.API.Hub;
-using PressureLogger.API.Requests;
+using PressureLogger.API.Models;
 using PressureLogger.Infrastructure.DAL;
 
 namespace PressureLogger.API;
@@ -15,45 +12,7 @@ public static class PressureEndpoints
 		var group = builder
 			.MapGroup("api/pressure")
 			.WithTags("Pressure");
-
-		group.MapPost("/", async (
-			PressureLoggerContext context,
-			SendPressureLogRequest request,
-			IHubContext<WeightHub, IWeightClient> hubContext,
-			CancellationToken ct) =>
-		{
-			var log = PressureHistory.Create(request.Weight, DateTime.Now);
-
-			await context.AddAsync(log, ct);
-
-			await context.SaveChangesAsync(ct);
-
-			await hubContext.Clients.All.SendWeight(log.ValueInKilograms, log.CreatedAt);
-
-			return Results.Created($"api/pressure/{log.Id}", log);
-		}).AddEndpointFilter<ApiKeyAuthenticationFilter>();
-
-
-		group.MapPost("/range", async (
-			PressureLoggerContext context,
-			[FromBody]IEnumerable<SendPressureLogRequestRange> request,
-			CancellationToken ct) =>
-		{
-			List<PressureHistory> logs = new(capacity: request.Count());
-
-			foreach(var log in request)
-			{
-				logs.Add(PressureHistory.Create(log.Weight, log.CreatedAt));
-			}
-
-			await context.AddRangeAsync(logs,ct);
-
-			await context.SaveChangesAsync(ct);
-
-			return Results.Created();
-		}).AddEndpointFilter<ApiKeyAuthenticationFilter>();
-
-
+		
 
 		group.MapGet("{id:guid}", async (PressureLoggerContext context, Guid id, CancellationToken ct) =>
 		{
@@ -95,5 +54,50 @@ public static class PressureEndpoints
 
 			return Results.Ok(histories);
 		});
+
+		group.MapGet("/avg-sec", async (PressureLoggerContext ctx,
+			[FromQuery] DateTime begin, [FromQuery] DateTime end, CancellationToken ct) =>
+		{
+			var result = await ctx.Database
+				.SqlQuery<PressureHistoryDto>($@"
+        SELECT 
+            strftime('%Y-%m-%d %H:%M:%S', CreatedAt) AS CreatedAt,
+            AVG(ValueInKilograms) AS ValueInKilograms
+        FROM 
+            PressureHistories
+        WHERE 
+            CreatedAt BETWEEN {begin} AND {end}
+        GROUP BY 
+            strftime('%Y-%m-%d %H:%M:%S', CreatedAt)
+        ORDER BY 
+            CreatedAt")
+				.ToListAsync(ct);
+			
+			return Results.Ok(result);	
+		});
+		
+		group.MapGet("/avg-min", async (PressureLoggerContext ctx,
+			[FromQuery] DateTime begin, [FromQuery] DateTime end, CancellationToken ct) =>
+		{
+			var result = await ctx.Database
+				.SqlQuery<PressureHistoryDto>($@"
+        SELECT 
+            strftime('%Y-%m-%d %H:%M', CreatedAt) AS CreatedAt,
+            AVG(ValueInKilograms) AS ValueInKilograms
+        FROM 
+            PressureHistories
+        WHERE 
+            CreatedAt BETWEEN {begin} AND {end}
+        GROUP BY 
+            strftime('%Y-%m-%d %H:%M', CreatedAt)
+        ORDER BY 
+            CreatedAt")
+				.ToListAsync(ct);
+			
+			return Results.Ok(result);	
+		});
 	}
+	
+	
+	
 }

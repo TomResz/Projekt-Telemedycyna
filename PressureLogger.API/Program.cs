@@ -1,8 +1,10 @@
 using PressureLogger.API;
-using PressureLogger.API.Hub;
+using PressureLogger.API.Hubs;
 using PressureLogger.API.Swagger;
 using PressureLogger.Infrastructure;
 using PressureLogger.Infrastructure.DAL;
+using PressureLogger.Infrastructure.MQTT;
+using PressureLogger.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +12,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCustomSwaggerGen();
 
 builder.Services.AddSignalR();
-
-
+builder.Services.AddScoped<IMessageSender, MessageSender>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddCors(options =>
@@ -37,6 +38,7 @@ if (app.Environment.IsDevelopment())
 }
 
 DatabaseInitializer.EnsureDatabaseCreated(app.Services);
+await MqttClientInitializer.Start(app.Services);
 
 app.UseHttpsRedirection();
 

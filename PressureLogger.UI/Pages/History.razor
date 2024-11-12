@@ -11,7 +11,7 @@
 
 <PageTitle>Aktualne Pomiary</PageTitle>
 
-<MudFab StartIcon="@Icons.Material.Filled.EditCalendar" OnClick="OpenDateDialog" Class="fixed-fab" />
+<MudFab StartIcon="@Icons.Material.Filled.EditCalendar" OnClick="OpenDateDialog" Class="fixed-fab"/>
 
 <canvas id="weightChart" width="400" height="200"></canvas>
 
@@ -25,69 +25,71 @@
 </style>
 
 @code {
-	private List<WeightModel>? weightData;
-	private DateTime SelectedDate { get; set; } = DateTime.Now;
+    private List<WeightModel>? weightData;
+    private DateTime SelectedDate { get; set; } = DateTime.Now;
 
-	private async Task OpenDateDialog()
-	{
-		var parameters = new DialogParameters()
-		{
-			{nameof(DateDialog.CheckedDate), SelectedDate}
-		};
-		var dialog = await DialogService.ShowAsync<DateDialog>("Wybierz Date", parameters);
+    private async Task OpenDateDialog()
+    {
+        var parameters = new DialogParameters()
+        {
+            { nameof(DateDialog.CheckedDate), SelectedDate }
+        };
+        var dialog = await DialogService.ShowAsync<DateDialog>("Wybierz Date", parameters);
 
-		var result = await dialog.Result;
+        var result = await dialog.Result;
 
-		if (result is not null &&
-			!result.Canceled &&
-			result.Data is DateTime date)
-		{
-			SelectedDate = date;
-			await LoadData(SelectedDate);
-			await InvokeAsync(StateHasChanged);
-		}
-	}
+        if (result is not null &&
+            !result.Canceled &&
+            result.Data is DateTime date)
+        {
+            SelectedDate = date;
+            await LoadData(SelectedDate);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
 
-	protected override async Task OnInitializedAsync()
-	{
-		var currentDate = DateTime.Now.Date;
-		await LoadData(currentDate);
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        var currentDate = DateTime.Now.Date;
+        await LoadData(currentDate);
+    }
 
-	private async Task LoadData(DateTime selectedDate)
-	{
-		weightData = await LoadWeightData(selectedDate);
-		if (weightData is not null && weightData.Count > 0)
-		{
-			var dateStr = selectedDate.ToString("dd.MM.yyyy");
-			await DrawChart(dateStr);
-		}
-		else
-		{
-			Snackbar.Add($"Brak danych do wyświetlania dla dnia {selectedDate.ToString("dd.MM.yyyy")}", Severity.Error);
-		}
-	}
+    private async Task LoadData(DateTime selectedDate)
+    {
+        weightData = await LoadWeightData(selectedDate);
+        if (weightData is not null && weightData.Count > 0)
+        {
+            var dateStr = selectedDate.ToString("dd.MM.yyyy");
+            await DrawChart(dateStr);
+        }
+        else
+        {
+            Snackbar.Add($"Brak danych do wyświetlania dla dnia {selectedDate.ToString("dd.MM.yyyy")}", Severity.Error);
+        }
+    }
 
-	private async Task<List<WeightModel>?> LoadWeightData(DateTime selectedDate)
-	{
-		var currentDate = selectedDate.ToString("yyyy-MM-dd");
-		var response = await Http.GetAsync($"pressure/{currentDate}");
+    private async Task<List<WeightModel>?> LoadWeightData(DateTime selectedDate)
+    {
+        var currentDate = selectedDate.ToString("yyyy-MM-dd");
+        var response = await Http.GetAsync($"pressure/{currentDate}");
 
-		if (response.IsSuccessStatusCode)
-		{
-			var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-			var bodyResponse = await response.Content.ReadAsStringAsync();
-			return JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
-		}
-		return new List<WeightModel>();
-	}
+        if (response.IsSuccessStatusCode)
+        {
+            var options = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+            var bodyResponse = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
+        }
 
-	private async Task DrawChart(string date)
-	{
-		var chartData = weightData!.Select(w => w.ValueInKilograms).ToArray();
-		var chartLabels = weightData!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
+        return new List<WeightModel>();
+    }
 
-		await JSRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, date);
-	}
+    private async Task DrawChart(string date)
+    {
+        var chartData = weightData!.Select(w => w.ValueInKilograms * 1000.0).ToArray();
+        var chartLabels = weightData!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
+
+        await JSRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, date);
+    }
+
 }
