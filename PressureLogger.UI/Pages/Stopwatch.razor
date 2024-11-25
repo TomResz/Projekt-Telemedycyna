@@ -4,25 +4,32 @@
 @using System.Timers
 
 <PageTitle>Stoper</PageTitle>
-
-<MudCard>
-	<MudCardContent>
-		<MudText Typo="Typo.h5" Class="mb-2">Stoper z wykresem</MudText>
-
-		<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartTimer" Disabled="@_isRunning">
-			Start
-		</MudButton>
-
-		<MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="StopTimer" Disabled="@(!_isRunning)">
-			Stop
-		</MudButton>
-
-		<MudText Typo="Typo.h6" Class="mt-3">
-			Czas: @_elapsedTime
-		</MudText>
-		<canvas id="weightChart" width="400" height="200"></canvas>
+<MudCard Style="height: 150px; width:200px;">
+	<MudCardContent >
+		<div class="d-flex flex-column">
+			<div class="d-flex flex-row mx-2 my-3">
+				<MudTooltip Text="Start" Class="flex-grow-1">
+					<MudIconButton Icon="@Icons.Material.Filled.PlayArrow"
+					               OnClick="@StartTimer"
+					               Class="h-100 w-100"
+					               Disabled="_isRunning" 
+					               Size="Size.Large"/>
+				</MudTooltip>
+				<MudTooltip Text="Stop" Class="flex-grow-1">
+					<MudIconButton Icon="@Icons.Material.Filled.Stop"
+					               Class="h-100 w-100" Disabled="@(!_isRunning)"
+					               OnClick="@StopTimer" 
+					               Size="Size.Large"/>
+				</MudTooltip>
+			</div>
+			<MudText Typo="Typo.h6" Class="my-3">
+				Czas: @_elapsedTime
+			</MudText>
+		</div>
 	</MudCardContent>
 </MudCard>
+<canvas id="weightChart" width="400" height="200"></canvas>
+
 
 @code {
 	[Inject] public HttpClient Http { get; set; }
@@ -72,13 +79,15 @@
 			var bodyResponse = await response.Content.ReadAsStringAsync();
 			var models = JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
 
-			var chartData = models!.Select(w => w.ValueInKilograms * 1000.0 ).ToArray();
+			var chartData = models!.Select(w => w.ValueInKilograms * 1000.0).ToArray();
 			var chartLabels = models!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
 
 			await JsRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, string.Empty);
 			await InvokeAsync(StateHasChanged);
 		}
+
 		_beginDate = null;
 		_endDate = null;
 	}
+
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 using MQTTnet;
 using Newtonsoft.Json;
 
@@ -22,7 +23,7 @@ Console.Write("Connected with MQTT Broker");
 while (true)
 {
     await SendPressureData();
-    await Task.Delay(5_000);
+    await Task.Delay(1_000);
 }
 
 
@@ -31,14 +32,14 @@ async Task SendPressureData()
     var random = new Random();
     double weight = random.NextDouble();
 
-    var models = new List<Request>(capacity: 20);
+    var models = new List<Request>(capacity: 10);
     
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 10; i++)
     {
         var request = new Request()
         {
-            Weight = random.NextDouble(),
-            CreatedAt = DateTime.Now,
+            w = random.NextDouble(),
+            c = DateTime.Now,
         };
         models.Add(request);
     }
@@ -46,7 +47,7 @@ async Task SendPressureData()
     var json = JsonConvert.SerializeObject(models);
     
     var message = new MqttApplicationMessageBuilder()
-        .WithTopic("sensors/measurements")
+        .WithTopic("/w")
         .WithPayload(json)
         .WithRetainFlag(false)
         .Build();
@@ -66,6 +67,7 @@ async Task SendPressureData()
 
 class Request
 {
-    public double Weight { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public double w { get; set; }
+    
+    public DateTime c { get; set; }
 }

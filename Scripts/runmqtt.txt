@@ -1,0 +1,7 @@
+docker run -d --name pressurelogger.mqtt \
+  -p 1883:1883 \
+  -p 9001:9001 \
+  -v $(pwd)/.containers/mqtt/config:/mosquitto/config \
+  -v $(pwd)/.containers/mqtt/data:/mosquitto/data \
+  -v $(pwd)/.containers/mqtt/log:/mosquitto/log \
+  eclipse-mosquitto

@@ -5,12 +5,15 @@
 #include <DNSServer.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-
+#include <time.h>
 #define LOG_ALL
 
 #define DOUT_PIN 4
 #define SCK_PIN 5
-#define MESSAGE_BUFFOR_SIZE 10
+#define MESSAGE_BUFFOR_SIZE 5
+
+const float A = 1.0059, B = 0.0144;
+
 HX711 scale;
 WiFiManager wm;
 
@@ -76,7 +79,7 @@ void sendMQTTMessage(float weights[], String timestamps[], int count)
   const char *payload = message.c_str();
 
 #ifdef LOG_ALL
-  Serial.println("Current buffor size:" + strlen(payload));
+  Serial.println("Current buffor size:" + String(strlen(payload)));
   Serial.println(payload);
 #endif
 
@@ -86,6 +89,7 @@ void sendMQTTMessage(float weights[], String timestamps[], int count)
   if (response)
   {
     Serial.println("Message sent!");
+    Serial.println("Message content:" + message);
   }
   else
   {
@@ -96,22 +100,21 @@ void sendMQTTMessage(float weights[], String timestamps[], int count)
 
 String getFormattedTime()
 {
-  unsigned long now = timeClient.getEpochTime();
-  int millisPart = millis() % 1000;
-
-  int year = 1970 + (now / 31556926);
-  int month = (now / 2629743) % 12 + 1;
-  int day = ((now / 86400L) % 30 + 1) - 18;
-
-  int hour = (now % 86400L) / 3600;
-  int minute = (now % 3600) / 60;
-  int second = now % 60;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo))
+  {
+    return "1970-01-01T00:00:00.000Z";
+  }
 
   char timeBuffer[30];
-  snprintf(timeBuffer, sizeof(timeBuffer), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-           year, month, day, hour, minute, second, millisPart);
+  strftime(timeBuffer, 
+      sizeof(timeBuffer),
+      "%Y-%m-%dT%H:%M:%S",
+       &timeinfo);
 
-  return String(timeBuffer);
+  int millisPart = millis() % 1000;
+  String formattedTime = String(timeBuffer) + "." + String(millisPart) + "Z";
+  return formattedTime;
 }
 
 void setupHx711()
@@ -148,27 +151,31 @@ void setupWifi()
   timeClient.update();
 }
 
+void setupLocalTime()
+{
+  configTime(3600, 3600, "pool.ntp.org");
+  delay(2000);
+}
+
 void setup()
 {
   Serial.begin(115200);
   setupWifi();
   setupHx711();
   setupMQTT();
-  timeClient.begin();
-  timeClient.update();
+  setupLocalTime();
 }
+
 
 void loop()
 {
-  if (measurementCount < MESSAGE_BUFFOR_SIZE)
-  {
+  if (measurementCount < MESSAGE_BUFFOR_SIZE){
     delay(1);
-    weights[measurementCount] = scale.get_units(2);
+    weights[measurementCount] = (scale.get_units(2) - B) / A;
     timestamps[measurementCount] = getFormattedTime();
     measurementCount++;
   }
-  else
-  {
+  else{
     sendMQTTMessage(weights, timestamps, measurementCount);
     measurementCount = 0;
   }

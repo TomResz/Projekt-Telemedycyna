@@ -1,78 +1,76 @@
-﻿@page "/history"
-@layout ContentLayout
+﻿@layout ContentLayout
 @inject HttpClient Http
-@inject IJSRuntime JSRuntime
-@inject IDialogService DialogService
-@inject ISnackbar Snackbar 
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
 @using PressureLogger.UI.Models
 @using System.Text.Json
-@using MudBlazor
-@using PressureLogger.UI.Pages.Dialogs
+
+@page "/history"
 
 <PageTitle>Aktualne Pomiary</PageTitle>
-
-<MudFab StartIcon="@Icons.Material.Filled.EditCalendar" OnClick="OpenDateDialog" Class="fixed-fab"/>
-
-<canvas id="weightChart" width="400" height="200"></canvas>
-
-<style>
-	.fixed-fab {
-		position: fixed;
-		bottom: 16px;
-		right: 16px;
-		z-index: 1000;
-	}
-</style>
-
+<div class="d-flex flex-column" style="max-width: 500px;">
+    <div class="d-flex flex-row">
+        <div class="flex-grow-1 ma-2">
+            <MudTextField T="DateTime?" Format="s" Label="Data początkowa" @bind-Value="@Start"
+                          InputType="InputType.DateTimeLocal"/>
+        </div>
+        <div class="flex-grow-1 ma-2">
+            <MudTextField T="DateTime?" Format="s" Label="Data końcowa" @bind-Value="@End"
+                          InputType="InputType.DateTimeLocal"/>
+        </div>
+    </div>
+    <div class="ma-2 w-100">
+        <MudButton OnClick="@Submit" Color="Color.Primary" Disabled="@(Start is null || End is null)" Variant="Variant.Outlined">
+            Wyświetl Wyniki
+        </MudButton>
+    </div>
+</div>
+<div>
+    <canvas id="weightChart" width="400" height="200"></canvas>
+</div>
 @code {
-    private List<WeightModel>? weightData;
-    private DateTime SelectedDate { get; set; } = DateTime.Now;
+    private List<WeightModel>? _weightData;
 
-    private async Task OpenDateDialog()
+    private DateTime? Start { get; set; }
+    private DateTime? End { get; set; }
+
+    private async Task Submit()
     {
-        var parameters = new DialogParameters()
+        if (Start is null || End is null)
         {
-            { nameof(DateDialog.CheckedDate), SelectedDate }
-        };
-        var dialog = await DialogService.ShowAsync<DateDialog>("Wybierz Date", parameters);
-
-        var result = await dialog.Result;
-
-        if (result is not null &&
-            !result.Canceled &&
-            result.Data is DateTime date)
-        {
-            SelectedDate = date;
-            await LoadData(SelectedDate);
-            await InvokeAsync(StateHasChanged);
+            Snackbar.Add("Należy wybrać daty!", Severity.Error);
+            return;
         }
-    }
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        var currentDate = DateTime.Now.Date;
-        await LoadData(currentDate);
-    }
-
-    private async Task LoadData(DateTime selectedDate)
-    {
-        weightData = await LoadWeightData(selectedDate);
-        if (weightData is not null && weightData.Count > 0)
+        else if (Start > End)
         {
-            var dateStr = selectedDate.ToString("dd.MM.yyyy");
+            Snackbar.Add("Nieprawidłowe daty!", Severity.Error);
+            return;
+        }
+
+        await LoadData((DateTime)Start!, (DateTime)End!);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadData(DateTime start, DateTime end)
+    {
+        _weightData = await LoadWeightData(start, end);
+        if (_weightData is not null && _weightData.Count > 0)
+        {
+            var dateStr = $"{start.ToString("HH:mm dd.MM.yyyy ")} - {end.ToString("HH:mm dd.MM.yyyy ")}";
             await DrawChart(dateStr);
         }
         else
         {
-            Snackbar.Add($"Brak danych do wyświetlania dla dnia {selectedDate.ToString("dd.MM.yyyy")}", Severity.Error);
+            Snackbar.Add($"Brak danych do wyświetlania dla danego periodu czasu.", Severity.Error);
         }
     }
 
-    private async Task<List<WeightModel>?> LoadWeightData(DateTime selectedDate)
+    private async Task<List<WeightModel>?> LoadWeightData(DateTime start, DateTime end)
     {
-        var currentDate = selectedDate.ToString("yyyy-MM-dd");
-        var response = await Http.GetAsync($"pressure/{currentDate}");
+        var startStr = start.ToString("yyyy-MM-ddTHH:mm:ss");
+        var endStr = end.ToString("yyyy-MM-ddTHH:mm:ss");
+
+        var response = await Http.GetAsync($"pressure/avg-min?begin={startStr}&end={endStr}");
 
         if (response.IsSuccessStatusCode)
         {
@@ -81,15 +79,20 @@
             return JsonSerializer.Deserialize<List<WeightModel>>(bodyResponse, options);
         }
 
-        return new List<WeightModel>();
+        return [];
     }
 
     private async Task DrawChart(string date)
     {
-        var chartData = weightData!.Select(w => w.ValueInKilograms * 1000.0).ToArray();
-        var chartLabels = weightData!.Select(w => w.CreatedAt.ToString("HH:mm:ss")).ToArray();
+        var chartData = _weightData!
+            .Select(w => w.ValueInKilograms * 1000.0)
+            .ToArray();
+        
+        var chartLabels = _weightData!
+            .Select(w => w.CreatedAt.ToString("HH:mm"))
+            .ToArray();
 
-        await JSRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, date);
+        await JsRuntime.InvokeVoidAsync("drawWeightChart", chartLabels, chartData, date);
     }
 
 }

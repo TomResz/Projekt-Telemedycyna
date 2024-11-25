@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Scripts\rebuildUI.bat = Scripts\rebuildUI.bat
 		Scripts\runDockerContainers.bat = Scripts\runDockerContainers.bat
 		Scripts\stopContainers.bat = Scripts\stopContainers.bat
+		Scripts\runmqtt.bat = Scripts\runmqtt.bat
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PressureLogger.API", "PressureLogger.API\PressureLogger.API.csproj", "{3682EDE1-D754-49BF-8032-93A3EBFE2F3D}"

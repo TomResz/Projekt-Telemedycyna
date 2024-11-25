@@ -14,4 +14,8 @@
     <PackageReference Include="MudBlazor" Version="7.13.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\Dialogs\DateDialog.razor" />
+  </ItemGroup>
+
 </Project>
