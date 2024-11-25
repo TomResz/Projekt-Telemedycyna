@@ -12,7 +12,7 @@
 #define SCK_PIN 5
 #define MESSAGE_BUFFOR_SIZE 5
 
-const float A = 1.0059, B = 0.0144;
+const float A = 1.008915, B = -0.0114;
 
 HX711 scale;
 WiFiManager wm;
@@ -171,7 +171,7 @@ void loop()
 {
   if (measurementCount < MESSAGE_BUFFOR_SIZE){
     delay(1);
-    weights[measurementCount] = (scale.get_units(2) - B) / A;
+    weights[measurementCount] = (scale.get_units(2) - B) / A ;
     timestamps[measurementCount] = getFormattedTime();
     measurementCount++;
   }

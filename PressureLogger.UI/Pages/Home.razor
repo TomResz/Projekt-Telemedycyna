@@ -17,7 +17,7 @@
 <div class="d-flex justify-content-center align-items-center flex-column" style="height: calc(100vh - 96px);">
 	<MudPaper Class="p-4" Elevation="4" Style="max-width: 950px; width: 100%;">
 		<div class="d-flex justify-content-center align-items-center flex-column">
-            <canvas id="gaugeCanvas" width="380" height="200"></canvas>
+            <canvas id="gaugeCanvas" width="380" height="190"></canvas>
 			<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-2">
 				Aktualny pomiar: <b>@(_currentWeight < 1.0 ? $"{(_currentWeight * 1000.0)} g" : $"{_currentWeight} kg")</b>
 			</MudText>
